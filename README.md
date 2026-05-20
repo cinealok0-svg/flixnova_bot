@@ -1,1 +1,4 @@
-# flixnova_bot
+pyTelegramBotAPI
+instagrapi
+flask
+pillow
