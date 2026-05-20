@@ -1,4 +1,4 @@
 pyTelegramBotAPI
 instagrapi
-flask
-pillow
+requests
+Flask
