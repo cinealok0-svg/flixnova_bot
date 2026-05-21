@@ -1,4 +1,5 @@
 pyTelegramBotAPI
 instagrapi
+yt-dlp
 requests
 Flask
