@@ -6,11 +6,12 @@ import os
 import threading
 from flask import Flask
 import json
+import time
 
 # ==========================================
-# 1. अपना BOT TOKEN यहाँ डालें
+# 1. आपका BOT TOKEN (यहाँ सेट कर दिया गया है)
 # ==========================================
-TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN_HERE'  # ⚠️ यहाँ अपना असली टोकन डालें
+TOKEN = '8529193805:AAHDMK2V5MRnRUJk7REQiFzN43_XdsE1w4E'
 bot = telebot.TeleBot(TOKEN)
 
 
@@ -22,7 +23,13 @@ app = Flask(__name__)
 def home():
     return "Flix Nova Supreme Bot is Running 24/7!"
 
-threading.Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080))), daemon=True).start()
+def run_server():
+    try:
+        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    except:
+        pass
+
+threading.Thread(target=run_server, daemon=True).start()
 
 
 # ==========================================
@@ -162,7 +169,6 @@ def callback_query(call):
         save_db()
         bot.edit_message_text(f"🔗 **[@{user_data[chat_id]['active_account']}]** के बायो के लिए नया लिंक भेजें:", chat_id, call.message.message_id, reply_markup=get_cancel_markup(), parse_mode="Markdown")
 
-    # --- पुराना वाला फाइल अपलोड सिस्टम (नया बटन) ---
     elif call.data == "upload_file_menu":
         if not user_data[chat_id].get("active_account"):
             bot.answer_callback_query(call.id, "⚠️ पहले ID सेलेक्ट करें!", show_alert=True)
@@ -192,7 +198,6 @@ def handle_all_messages(message):
     chat_id = str(message.chat.id)
     step = user_data.get(chat_id, {}).get('step', 'idle')
 
-    # --- 1. लॉगिन सेव करना ---
     if step == 'waiting_for_login':
         if message.content_type == 'text' and '|' in message.text:
             u, s = message.text.split('|', 1)
@@ -210,7 +215,6 @@ def handle_all_messages(message):
         else:
             bot.reply_to(message, "⚠️ गलत फॉर्मेट! कृपया `username|sessionid` में भेजें।", reply_markup=get_cancel_markup())
 
-    # --- 2. बायो लिंक ---
     elif step == 'waiting_for_bio_link' and message.content_type == 'text':
         new_link = message.text.strip()
         active_acc = user_data[chat_id]['active_account']
@@ -225,7 +229,6 @@ def handle_all_messages(message):
         user_data[chat_id]['step'] = 'idle'
         save_db()
 
-    # --- 3. यूट्यूब लिंक से अपलोड ---
     elif step == 'waiting_for_yt_link' and message.content_type == 'text':
         link = message.text.strip()
         active_acc = user_data[chat_id]['active_account']
@@ -249,7 +252,6 @@ def handle_all_messages(message):
             user_data[chat_id]['step'] = 'idle'
             save_db()
 
-    # --- 4. टेलीग्राम फाइल से अपलोड (पुराना वाला सिस्टम) ---
     elif step == 'waiting_for_video':
         if message.content_type == 'video':
             if message.video.file_size > 20971520:
@@ -319,5 +321,15 @@ def handle_all_messages(message):
             user_data[chat_id]['step'] = 'idle'
             save_db()
 
-print("👑 Flix Nova Supreme Bot Live है!")
-bot.infinity_polling(timeout=20, long_polling_timeout=10)
+# ==========================================
+# 7. ANTI-CRASH BOT START ENGINE
+# ==========================================
+print("👑 Supreme Bot चालू हो रहा है...")
+try:
+    bot.infinity_polling(timeout=20, long_polling_timeout=10)
+except Exception as e:
+    print("=====================================================")
+    print(f"❌ BOT CRASHED: {e}")
+    print("=====================================================")
+    while True:
+        time.sleep(60)
